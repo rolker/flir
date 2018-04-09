@@ -2,9 +2,8 @@
 
 # Interface to FLIR AX8 camera
 
-import urllib
 import urllib2
-import base64
+import urllib
 
 Reverse_engineering_notes = '''
 
@@ -64,30 +63,82 @@ See also: BasicICD.pdf
 
 ''' 
 
-
+def CtoK(temp):
+    return temp+273.15
 
 class Flir:
     def __init__(self, baseURL='http://192.168.15.6/'):
         self.baseURL = baseURL
-        #authenticate with camera
-	print urllib2.urlopen(self.baseURL+'/login/dologin',urllib.urlencode({'user_name':'admin','user_password':'admin'})).read()
 
+    def setResource(self,resource,value):
+        return urllib2.urlopen(self.baseURL+'res.php',urllib.urlencode({'action':'set','resource':resource,'value':value})).read()
 
-    def takeSnapshot(self):
-        urllib2.urlopen(self.baseURL+'res.php',urllib.urlencode({'action':'set','resource':'.resmon.action.snapshot','value':'true'}))
-        fname = urllib2.urlopen(self.baseURL+'res.php',urllib.urlencode({'action':'get','resource':'.image.services.store.filename'})).read()
-        print fname
-        fname = ''.join(fname.strip('"').split('\\'))
-        print fname
+    def getResource(self,resource):
+        return urllib2.urlopen(self.baseURL+'res.php',urllib.urlencode({'action':'get','resource':resource})).read()
 
-        #return (fname.rsplit('/',1)[1], urllib2.urlopen(self.baseURL+fname).read()) 
-	return ('snapshot.jpg',urllib2.urlopen(self.baseURL+'snapshot.jpg').read())
-        
+    def setIRMode(self):
+        f.setResource('.image.sysimg.fusion.fusionData.fusionMode',1)
+        f.setResource('.image.sysimg.fusion.fusionData.useLevelSpan',1)
 
+    def setVisualMode(self):
+        f.setResource('.image.sysimg.fusion.fusionData.fusionMode',1)
+        f.setResource('.image.sysimg.fusion.fusionData.useLevelSpan',0)
 
+    def setMSXMode(self):
+        f.setResource('.image.sysimg.fusion.fusionData.fusionMode',3)
+
+    def setTemperatureRange(self,minTemp, maxTemp):
+        f.setResource('.image.contadj.adjMode', 'manual')
+        f.setResource('.image.sysimg.basicImgData.extraInfo.lowT',CtoK(minTemp))
+        f.setResource('.image.sysimg.basicImgData.extraInfo.highT',CtoK(maxTemp))
+    
+    def showOverlay(self,show=True):
+        if show:
+            f.setResource('.resmon.config.hideGraphics','false')
+        else:
+            f.setResource('.resmon.config.hideGraphics','true')
+
+    def light(self,on=True):
+        if on:
+            f.setResource('.system.vcam.torch','true')
+        else:
+            f.setResource('.system.vcam.torch','false')
+
+    def setPalette(self, palette):
+        # iron.pal, bw.pal, rainbow.pal
+        f.setResource('.image.sysimage.palette.readFile',palette)
+
+    def getBox(self,boxNumber):
+        ret = {}
+        bns = str(boxNumber)
+        for field in ('active','avgT','avgValid','x','y','width','height','medianT','medianValid','minT','minValid','minX','minY','maxT','maxValid','maxX','maxY'):
+            ret[field] =self.getResource('.image.sysimg.measureFuncs.mbox.'+bns+'.'+field)
+        return ret
+
+    def getBoxes(self):
+        ret = []
+        for i in range(1,7):
+            ret.append(self.getBox(i))
+        return ret
 
 if __name__ == '__main__':
+    import sys
     f = Flir()
-    fname, jpg = f.takeSnapshot()
-    open(fname,'wb').write(jpg)
+    if len(sys.argv) > 1:
+        res = sys.argv[1]
+        if len(sys.argv) == 2:
+            if sys.argv[1] == '-b':
+                print f.getBox(1)
+            else:
+                print f.getResource(res)
+        elif len(sys.argv) == 3:
+            print f.setResource(res,sys.argv[2])
+        elif sys.argv[1] == '-t':
+            f.setTemperatureRange(float(sys.argv[2]),float(sys.argv[3]))
+    else:
+        f.setIRMode()
+        f.setTemperatureRange(20,45)
+        f.showOverlay(False)
+        f.setPalette('bw.pal')
 
+    
