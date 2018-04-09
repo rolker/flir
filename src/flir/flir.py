@@ -111,8 +111,11 @@ class Flir:
     def getBox(self,boxNumber):
         ret = {}
         bns = str(boxNumber)
+        ret['boxNumber']=boxNumber
         for field in ('active','avgT','avgValid','x','y','width','height','medianT','medianValid','minT','minValid','minX','minY','maxT','maxValid','maxX','maxY'):
             ret[field] =self.getResource('.image.sysimg.measureFuncs.mbox.'+bns+'.'+field)
+            if field == 'active' and ret[field] == '"false"':
+                break
         return ret
 
     def getBoxes(self):
