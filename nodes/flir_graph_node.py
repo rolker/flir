@@ -27,6 +27,6 @@ def callback(data):
     
 if __name__ == '__main__':
     rospy.init_node('flir_graph', anonymous=True)
-    rospy.Subscriber('flir_engine', String, callback)
+    rospy.Subscriber('/udp/flir_engine', String, callback)
     rospy.spin()
     
