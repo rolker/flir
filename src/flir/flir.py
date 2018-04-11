@@ -112,7 +112,8 @@ class Flir:
         ret = {}
         bns = str(boxNumber)
         ret['boxNumber']=boxNumber
-        for field in ('active','avgT','avgValid','x','y','width','height','medianT','medianValid','minT','minValid','minX','minY','maxT','maxValid','maxX','maxY'):
+        #for field in ('active','avgT','avgValid','x','y','width','height','medianT','medianValid','minT','minValid','minX','minY','maxT','maxValid','maxX','maxY'):
+        for field in ('active','avgT','minT','maxT'):
             ret[field] =self.getResource('.image.sysimg.measureFuncs.mbox.'+bns+'.'+field)
             if field == 'active' and ret[field] == '"false"':
                 break
