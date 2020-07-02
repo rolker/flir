@@ -67,7 +67,7 @@ def CtoK(temp):
     return temp+273.15
 
 class Flir:
-    def __init__(self, baseURL='http://192.168.15.6/'):
+    def __init__(self, baseURL='http://192.168.100.6/'):
         self.baseURL = baseURL
 
     def setResource(self,resource,value):
