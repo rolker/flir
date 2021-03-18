@@ -2,8 +2,8 @@
 
 # Interface to FLIR AX8 camera
 
-import urllib2
-import urllib
+import urllib.request
+import urllib.parse
 
 Reverse_engineering_notes = '''
 
@@ -71,10 +71,10 @@ class Flir:
         self.baseURL = baseURL
 
     def setResource(self,resource,value):
-        return urllib2.urlopen(self.baseURL+'res.php',urllib.urlencode({'action':'set','resource':resource,'value':value})).read()
+        return urllib.request.urlopen(self.baseURL+'res.php',urllib.parse.urlencode({'action':'set','resource':resource,'value':value}).encode("utf-8")).read()
 
     def getResource(self,resource):
-        return urllib2.urlopen(self.baseURL+'res.php',urllib.urlencode({'action':'get','resource':resource})).read()
+        return urllib.request.urlopen(self.baseURL+'res.php',urllib.parse.urlencode({'action':'get','resource':resource}).encode("utf-8")).read()
 
     def setIRMode(self):
         f.setResource('.image.sysimg.fusion.fusionData.fusionMode',1)
@@ -132,11 +132,11 @@ if __name__ == '__main__':
         res = sys.argv[1]
         if len(sys.argv) == 2:
             if sys.argv[1] == '-b':
-                print f.getBox(1)
+                print (f.getBox(1))
             else:
-                print f.getResource(res)
+                print (f.getResource(res))
         elif len(sys.argv) == 3:
-            print f.setResource(res,sys.argv[2])
+            print (f.setResource(res,sys.argv[2]))
         elif sys.argv[1] == '-t':
             f.setTemperatureRange(float(sys.argv[2]),float(sys.argv[3]))
     else:
